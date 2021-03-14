@@ -1,4 +1,5 @@
 #include "xml.h"
+#include "test_runner.h"
 
 #include <string_view>
 #include <iostream>

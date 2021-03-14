@@ -1,10 +1,11 @@
-#include "xml.h"
 #include "test_runner.h"
+#include "xml.h"
 
 #include <algorithm>
 #include <iostream>
 #include <sstream>
 #include <vector>
+
 using namespace std;
 
 struct Spending {
@@ -43,6 +44,13 @@ string MostExpensiveCategory(
 
 vector<Spending> LoadFromXml(istream& input) {
   // Реализуйте эту функцию с помощью библиотеки xml.h
+	Document doc = Load(input);
+	vector<Spending> result;
+	for (auto node : doc.GetRoot().Children()) {
+		result.push_back({node.AttributeValue<string>("category"), node.AttributeValue<int>("amount")});
+	}
+
+	return result;
 }
 
 void TestLoadFromXml() {
