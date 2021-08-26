@@ -16,8 +16,9 @@ public:
   UniquePtr(T* ptr) : ptr_(ptr) {}
   UniquePtr(UniquePtr&& other) noexcept  { 
 	  ptr_ = other.ptr_; 
-	  //other.ptr_ = nullptr;
+	  other.ptr_ = nullptr;
   }
+
   UniquePtr& operator=(nullptr_t) { 
 	delete ptr_; 
 	ptr_ = nullptr;
@@ -27,7 +28,7 @@ public:
   UniquePtr& operator=(UniquePtr&& other) noexcept {
 	delete ptr_;
 	ptr_ = other.ptr_; 
-	//other.ptr_ = nullptr;
+	other.ptr_ = nullptr;
 	return *this;
   }
 

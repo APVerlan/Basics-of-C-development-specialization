@@ -45,7 +45,7 @@ private:
 	vector<BucketList> items;
 	Hasher hash;
 
-	size_t GetHash(Type& value) {
+	size_t GetHash(const Type& value) const {
 		return hash(value) % items.size();
 	}
 };
