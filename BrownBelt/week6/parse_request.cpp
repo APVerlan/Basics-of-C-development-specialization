@@ -1,7 +1,3 @@
-//
-// Created by apisa on 27.08.2021.
-//
-
 #include "BusDataBase.h"
 
 std::string PreprocessString(std::string str) {
@@ -27,7 +23,7 @@ std::unique_ptr<Request>    ParseAnswRequest(std::string& str) {
         std::string stop, num;
 
         std::getline(stream_i, num, ':');
-        request.GetBusNum() = PreprocessString(num);
+        request.bus_num = PreprocessString(num);
         return std::make_unique<PrintRouteStats>(request);
     } else return nullptr;
 }

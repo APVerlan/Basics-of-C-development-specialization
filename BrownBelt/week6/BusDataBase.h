@@ -1,7 +1,3 @@
-//
-// Created by apisa on 27.08.2021.
-//
-
 #ifndef MY_PROJECT_BUSDATABASE_H
 #define MY_PROJECT_BUSDATABASE_H
 
@@ -35,8 +31,5 @@ private:
     void    ProcessLengths();
 };
 
-std::string PreprocessString(std::string str);
-std::unique_ptr<Request> ParseBuildRequest(std::string& str);
-std::unique_ptr<Request> ParseAnswRequest(std::string& str);
 
 #endif  // MY_PROJECT_BUSDATABASE_H

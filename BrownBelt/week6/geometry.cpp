@@ -1,7 +1,3 @@
-//
-// Created by apisa on 27.08.2021.
-//
-
 #include "geometry.h"
 
 double GetDistance(Point lhs, Point rhs) {

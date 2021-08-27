@@ -3,10 +3,7 @@
 
 #include "BusDataBase.h"
 #include "test_runner.h"
-
-void TestPrepStr();
-void TestParseAnsw();
-void TestParseBuildStop();
+#include "parse_request_tests.h"
 
 int main() {
     BusDataBase db;
@@ -15,6 +12,7 @@ int main() {
     RUN_TEST(tr, TestPrepStr);
     RUN_TEST(tr, TestParseAnsw);
     RUN_TEST(tr, TestParseBuildStop);
+    RUN_TEST(tr, TestParseBuildRoute);
 
 
     std::cout << std::setprecision(6);
