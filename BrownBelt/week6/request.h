@@ -1,7 +1,3 @@
-//
-// Created by apisa on 27.08.2021.
-//
-
 #ifndef MY_PROJECT_REQUEST_H
 #define MY_PROJECT_REQUEST_H
 
@@ -25,39 +21,31 @@ struct BusRoute {
 struct Request {
     RequestType type;
 
-    virtual Point&              GetCoord()  = 0;
-    virtual std::string&        GetName() = 0;
-    virtual std::string&        GetBusNum() = 0;
-    virtual BusRoute&           GetRoute() = 0;
+    virtual void            *GetData() = 0;
+    virtual std::string     &GetName() = 0;
 };
 
 struct AddStop : public Request {
     Point coord;
     std::string name;
 
-    Point&          GetCoord() { return coord; };
-    std::string&    GetName() { return name; };
-    std::string&    GetBusNum() {};
-    BusRoute&       GetRoute() {};
+    void            *GetData() { return static_cast<void *>(&coord); };
+    std::string     &GetName() { return name; };
 };
 
 struct AddRoute : public Request {
     BusRoute route;
     std::string bus_num;
 
-    BusRoute&       GetRoute() { return route; };
-    std::string&    GetBusNum() { return bus_num; };
-    Point&          GetCoord() {};
-    std::string&    GetName() {};
+    void            *GetData() { return static_cast<void *>(&route); };
+    std::string     &GetName() { return bus_num; };
 };
 
 struct PrintRouteStats : public Request {
     std::string bus_num;
 
-    std::string&    GetBusNum() { return bus_num; };
-    Point&          GetCoord() {};
-    std::string&    GetName() {};
-    BusRoute&       GetRoute() {};
+    std::string     &GetName() { return bus_num; };
+    void            *GetData() { return nullptr; };
 };
 
 #endif  // MY_PROJECT_REQUEST_H

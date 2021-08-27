@@ -26,7 +26,7 @@ void    BusDataBase::Build(std::istream &stream_i) {
 
 void    BusDataBase::ProcessAnswRequest(std::unique_ptr<Request> request, std::ostream &stream_o) {
     stream_o << "Bus " << request->GetName() << ": ";
-    if (bus_routes_.count(request->GetName()) > 0) {
+    if (bus_routes_.count(request->GetName()) != 0) {
         auto bus_route = bus_routes_[request->GetName()];
 
         if (bus_route.type == "circle") {
