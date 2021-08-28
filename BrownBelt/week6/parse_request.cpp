@@ -2,10 +2,10 @@
 
 std::string PreprocessString(std::string str) {
     size_t i = 0;
-    while (str.back() == ' ') {
+    while (std::isspace(str.back())) {
         str.pop_back();
     }
-    while (str[i] == ' ') {
+    while (std::isspace(str[i])) {
         i++;
     }
     return str.substr(i);
@@ -18,13 +18,22 @@ std::unique_ptr<Request>    ParseAnswRequest(std::string& str) {
 
     if (type == "Bus") {
         PrintRouteStats request;
-        request.type = RequestType::PrintRouteStats;
+        std::string num;
 
-        std::string stop, num;
+        request.type = RequestType::PrintRouteStats;
 
         std::getline(stream_i, num, ':');
         request.bus_num = PreprocessString(num);
         return std::make_unique<PrintRouteStats>(request);
+    } else if (type == "Stop") {
+        PrintStopStats request;
+        std::string name;
+
+        request.type = RequestType::PrintStopStats;
+
+        std::getline(stream_i, name, ':');
+        request.name = PreprocessString(name);
+        return std::make_unique<PrintStopStats>(request);
     } else return nullptr;
 }
 
@@ -77,5 +86,7 @@ std::unique_ptr<Request>    ParseBuildRequest(std::string& str) {
             request.route.uniq_stops.insert(stop);
         }
         return std::make_unique<AddRoute>(request);
-    } else return nullptr;
+    } else {
+        return nullptr;
+    }
 }

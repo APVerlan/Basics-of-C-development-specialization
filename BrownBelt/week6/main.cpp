@@ -15,7 +15,7 @@ int main() {
     RUN_TEST(tr, TestParseBuildRoute);
 
 
-    std::cout << std::setprecision(6);
+    //std::cout << std::setprecision(6);
     db.Build(std::cin);
     db.AnswerRequests(std::cin);
 }
