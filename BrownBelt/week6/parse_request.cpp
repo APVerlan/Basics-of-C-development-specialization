@@ -25,6 +25,15 @@ std::unique_ptr<Request>    ParseAnswRequest(std::string& str) {
         std::getline(stream_i, num, ':');
         request.bus_num = PreprocessString(num);
         return std::make_unique<PrintRouteStats>(request);
+    } else if (type == "Stop") {
+        PrintStopStats request;
+        std::string name;
+
+        request.type = RequestType::PrintStopStats;
+
+        std::getline(stream_i, name, ':');
+        request.name = PreprocessString(name);
+        return std::make_unique<PrintStopStats>(request);
     } else return nullptr;
 }
 

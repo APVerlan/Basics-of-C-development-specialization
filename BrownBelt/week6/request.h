@@ -8,7 +8,8 @@
 enum class RequestType {
     AddRoute,
     AddStop,
-    PrintRouteStats
+    PrintRouteStats,
+    PrintStopStats
 };
 
 struct BusRoute {
@@ -45,6 +46,13 @@ struct PrintRouteStats : public Request {
     std::string bus_num;
 
     std::string     &GetName() { return bus_num; };
+    void            *GetData() { return nullptr; };
+};
+
+struct PrintStopStats : public Request {
+    std::string name;
+
+    std::string     &GetName() { return name; };
     void            *GetData() { return nullptr; };
 };
 
