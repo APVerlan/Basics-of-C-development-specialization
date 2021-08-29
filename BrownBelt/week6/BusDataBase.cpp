@@ -50,12 +50,13 @@ void    BusDataBase::ProcessAnswRequest(std::unique_ptr<Request> request, std::o
         stream_o << "Stop " << request->GetName() << ": ";
         if (bus_stops_.count(request->GetName()) != 0) {
             if (bus_stops_.at(request->GetName()).buses.empty()) {
-                stream_o << "not buses\n";
+                stream_o << "no buses\n";
             } else {
                 stream_o << "buses";
                 for (auto& item : bus_stops_.at(request->GetName()).buses) {
                     stream_o << " " << item;
                 }
+                stream_o << std::endl;
             }
         }
         else {
@@ -71,14 +72,18 @@ void BusDataBase::ProcessLengths() {
                 GetDistance(bus_stops_.at(bus_route.route[i - 1]).coord,
                             bus_stops_.at(bus_route.route[i]).coord);
             bus_route.length +=
-                    (bus_stops_.at(bus_route.route[i - 1]).dists.count(bus_route.route[i]) ?
+                    ((bus_stops_.at(bus_route.route[i - 1]).dists.count(bus_route.route[i]) > 0) ?
                     bus_stops_.at(bus_route.route[i - 1]).dists.at(bus_route.route[i]) :
                      bus_stops_.at(bus_route.route[i]).dists.at(bus_route.route[i - 1]));
         }
 
         if (bus_route.type == "direct") {
-            bus_route.length += bus_route.length;
             bus_route.geo_length += bus_route.geo_length;
+            for (size_t i = 1; i < bus_route.route.size(); ++i) {
+                bus_route.length += ((bus_stops_.at(bus_route.route[i]).dists.count(bus_route.route[i - 1]) > 0) ?
+                                     bus_stops_.at(bus_route.route[i]).dists.at(bus_route.route[i - 1]) :
+                                     bus_stops_.at(bus_route.route[i - 1]).dists.at(bus_route.route[i]));
+            }
         }
     }
 }
