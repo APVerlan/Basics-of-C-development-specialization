@@ -8,7 +8,8 @@ void    BusDataBase::ProcessBuildRequest(std::unique_ptr<Request> request) {
             bus_stops_[item].buses.insert(request->GetName());
         }
     } else if (request->type == RequestType::AddStop) {
-        bus_stops_[request->GetName()] = *static_cast<StopData *>(request->GetData());
+        bus_stops_[request->GetName()].coord = static_cast<StopData *>(request->GetData())->coord;
+        bus_stops_[request->GetName()].dists = static_cast<StopData *>(request->GetData())->dists;
     }
 }
 
