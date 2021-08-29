@@ -40,7 +40,7 @@ void    BusDataBase::ProcessAnswRequest(std::unique_ptr<Request> request, std::o
             }
 
             stream_o << " stops on route, " << bus_route.uniq_stops.size() << " unique stops, "
-                     << bus_route.length << " route length," <<  bus_route.length / bus_route.geo_length << " curvature\n";
+                     << bus_route.length << " route length, " <<  bus_route.length / bus_route.geo_length << " curvature\n";
 
         } else {
             stream_o << "not found\n";
