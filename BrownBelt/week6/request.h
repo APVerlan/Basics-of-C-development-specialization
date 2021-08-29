@@ -12,11 +12,18 @@ enum class RequestType {
     PrintStopStats
 };
 
+struct StopData {
+    Point coord;
+    std::set<std::string> buses;
+    std::unordered_map<std::string, int> dists;
+};
+
 struct BusRoute {
     std::string type;
     std::vector<std::string> route;
     std::unordered_set<std::string> uniq_stops;
     double length = 0.;
+    double geo_length = 0.;
 };
 
 struct Request {
@@ -27,10 +34,10 @@ struct Request {
 };
 
 struct AddStop : public Request {
-    Point coord;
+    StopData data;
     std::string name;
 
-    void            *GetData() { return static_cast<void *>(&coord); };
+    void            *GetData() { return static_cast<void *>(&data); };
     std::string     &GetName() { return name; };
 };
 

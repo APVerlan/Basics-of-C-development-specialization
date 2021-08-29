@@ -26,14 +26,8 @@ public:
     void    AnswerRequests(std::istream &stream_i);
 
 private:
-    struct StopData {
-        Point coord;
-        std::set<std::string> buses;
-    };
-
     std::unordered_map<std::string, BusRoute>   bus_routes_;
     std::unordered_map<std::string, StopData>   bus_stops_;
-
     void    ProcessLengths();
 };
 

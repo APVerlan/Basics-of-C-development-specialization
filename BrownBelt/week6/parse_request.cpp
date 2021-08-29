@@ -46,19 +46,29 @@ std::unique_ptr<Request>    ParseBuildRequest(std::string& str) {
         AddStop request;
         request.type = RequestType::AddStop;
 
-        std::string name, crd;
+        std::string name, data;
 
         std::getline(stream_i, name, ':');
 
         request.name = PreprocessString(name);
 
-        std::getline(stream_i, crd, ',');
-        crd = PreprocessString(crd);
-        request.coord.latitude = std::stod(crd);
+        std::getline(stream_i, data, ',');
+        data = PreprocessString(data);
+        request.data.coord.latitude = std::stod(data);
 
-        stream_i >> crd;
-        crd = PreprocessString(crd);
-        request.coord.longitude = std::stod(crd);
+        std::getline(stream_i, data, ',');
+        data = PreprocessString(data);
+        request.data.coord.longitude = std::stod(data);
+
+        if (!stream_i.str().empty()) {
+            std::string stop;
+            while(std::getline(stream_i, data, 'm')) {
+                stream_i >> stop;
+                std::getline(stream_i, stop, ',');
+                request.data.dists[PreprocessString(stop)] = std::stoi(PreprocessString(data));
+            }
+        }
+
         return std::make_unique<AddStop>(request);
     } else if (type == "Bus") {
         AddRoute request;

@@ -8,7 +8,7 @@ void    BusDataBase::ProcessBuildRequest(std::unique_ptr<Request> request) {
             bus_stops_[item].buses.insert(request->GetName());
         }
     } else if (request->type == RequestType::AddStop) {
-        bus_stops_[request->GetName()].coord = *static_cast<Point *>(request->GetData());
+        bus_stops_[request->GetName()] = *static_cast<StopData *>(request->GetData());
     }
 }
 
@@ -40,7 +40,7 @@ void    BusDataBase::ProcessAnswRequest(std::unique_ptr<Request> request, std::o
             }
 
             stream_o << " stops on route, " << bus_route.uniq_stops.size() << " unique stops, "
-                     << bus_route.length << " route length\n";
+                     << bus_route.length << " route length," <<  bus_route.length / bus_route.geo_length << " curvature\n";
 
         } else {
             stream_o << "not found\n";
@@ -66,12 +66,18 @@ void    BusDataBase::ProcessAnswRequest(std::unique_ptr<Request> request, std::o
 void BusDataBase::ProcessLengths() {
     for (auto& [bus_num, bus_route] : bus_routes_) {
         for (size_t i = 1; i < bus_route.route.size(); ++i) {
-            bus_route.length +=
+            bus_route.geo_length +=
                 GetDistance(bus_stops_.at(bus_route.route[i - 1]).coord,
                             bus_stops_.at(bus_route.route[i]).coord);
+            bus_route.length +=
+                    (bus_stops_.at(bus_route.route[i - 1]).dists.count(bus_route.route[i]) ?
+                    bus_stops_.at(bus_route.route[i - 1]).dists.at(bus_route.route[i]) :
+                     bus_stops_.at(bus_route.route[i]).dists.at(bus_route.route[i - 1]));
         }
+
         if (bus_route.type == "direct") {
             bus_route.length += bus_route.length;
+            bus_route.geo_length += bus_route.geo_length;
         }
     }
 }
