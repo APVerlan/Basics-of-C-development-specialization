@@ -22,7 +22,7 @@ struct BusRoute {
     std::string type;
     std::vector<std::string> route;
     std::unordered_set<std::string> uniq_stops;
-    long long length = 0;
+    unsigned long long length = 0;
     double geo_length = 0.;
 };
 
