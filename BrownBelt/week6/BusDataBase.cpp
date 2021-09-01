@@ -110,14 +110,14 @@ void BusDataBase::AnswerRequests(const Document &request) {
     ProcessAnswRequestJSON(request);
 }
 
-void    BusDataBase::ProcessStopBildRequestJSON(const std::map<std::string, Node> request) {
+void    BusDataBase::ProcessStopBildRequestJSON(const std::map<std::string, Node> &request) {
     std::string name = request.at("name").AsString();
 
     bus_stops_[name].coord =
             {request.at("latitude").AsDouble(),
              request.at("longitude").AsDouble()};
 
-    std::unordered_map<std::string, int> dist_map;
+    std::unordered_map<std::string, uint64_t> dist_map;
     auto &json_dist_map = request.at("road_distances").AsMap();
 
     for (auto &[key, val] : json_dist_map) {
@@ -127,7 +127,7 @@ void    BusDataBase::ProcessStopBildRequestJSON(const std::map<std::string, Node
     bus_stops_[name].dists = move(dist_map);
 }
 
-void    BusDataBase::ProcessBusBildRequestJSON(const std::map<std::string, Node> request) {
+void    BusDataBase::ProcessBusBildRequestJSON(const std::map<std::string, Node> &request) {
     std::string name = request.at("name").AsString();
 
     for( auto &item : request.at("stops").AsArray()) {
@@ -151,13 +151,13 @@ void    BusDataBase::ProcessBuildRequestJSON(const Document &js) {
 
         if (request.at("type").AsString() == "Stop") {
             ProcessStopBildRequestJSON(request);
-        } else if ("Bus") {
+        } else if (request.at("type").AsString() == "Bus") {
             ProcessBusBildRequestJSON(request);
         }
     }
 }
 
-void    BusDataBase::ProcessAnswBusRequestJSON(const std::map<std::string, Node> request, std::ostream &stream_o) const {
+void    BusDataBase::ProcessAnswBusRequestJSON(const std::map<std::string, Node> &request, std::ostream &stream_o) const {
     std::string name = request.at("name").AsString();
 
     if (bus_routes_.count(name) != 0) {
@@ -172,7 +172,7 @@ void    BusDataBase::ProcessAnswBusRequestJSON(const std::map<std::string, Node>
     }
 }
 
-void    BusDataBase::ProcessAnswStopRequestJSON(const std::map<std::string, Node> request, std::ostream &stream_o) const {
+void    BusDataBase::ProcessAnswStopRequestJSON(const std::map<std::string, Node> &request, std::ostream &stream_o) const {
     std::string name = request.at("name").AsString();
 
     if (bus_stops_.count(name) != 0) {

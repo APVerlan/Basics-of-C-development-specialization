@@ -15,7 +15,7 @@ enum class RequestType {
 struct StopData {
     Point coord;
     std::set<std::string> buses;
-    std::unordered_map<std::string, int> dists;
+    std::unordered_map<std::string, uint64_t> dists;
 };
 
 struct BusRoute {

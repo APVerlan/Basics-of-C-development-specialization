@@ -35,10 +35,10 @@ private:
     std::unordered_map<std::string, StopData>   bus_stops_;
 
     void    ProcessLengths();
-    void    ProcessStopBildRequestJSON(const std::map<std::string, Node> request);
-    void    ProcessBusBildRequestJSON(const std::map<std::string, Node> request);
-    void    ProcessAnswBusRequestJSON(const std::map<std::string, Node> request, std::ostream &stream_o) const;
-    void    ProcessAnswStopRequestJSON(const std::map<std::string, Node> request, std::ostream &stream_o) const;
+    void    ProcessStopBildRequestJSON(const std::map<std::string, Node> &request);
+    void    ProcessBusBildRequestJSON(const std::map<std::string, Node> &request);
+    void    ProcessAnswBusRequestJSON(const std::map<std::string, Node> &request, std::ostream &stream_o) const;
+    void    ProcessAnswStopRequestJSON(const std::map<std::string, Node> &request, std::ostream &stream_o) const;
 };
 
 
