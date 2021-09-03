@@ -5,13 +5,6 @@
 #include <unordered_set>
 #include <vector>
 
-enum class RequestType {
-    AddRoute,
-    AddStop,
-    PrintRouteStats,
-    PrintStopStats
-};
-
 struct StopData {
     Point coord;
     std::set<std::string> buses;
@@ -24,6 +17,17 @@ struct BusRoute {
     std::unordered_set<std::string> uniq_stops;
     unsigned long long length = 0;
     double geo_length = 0.;
+};
+
+/*
+ *  This code for old versions
+ *  Parth A, B, C
+
+enum class RequestType {
+    AddRoute,
+    AddStop,
+    PrintRouteStats,
+    PrintStopStats
 };
 
 struct Request {
@@ -62,5 +66,6 @@ struct PrintStopStats : public Request {
     std::string     &GetName() { return name; };
     void            *GetData() { return nullptr; };
 };
+*/
 
 #endif  // MY_PROJECT_REQUEST_H
