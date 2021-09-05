@@ -1,5 +1,4 @@
 #include "BusDataBase.h"
-#include "parse_request.h"
 
 
 void    BusDataBase::Build(const Document &request) {
@@ -22,7 +21,7 @@ void    BusDataBase::Build(const Document &request) {
 
     const auto &settings = request.GetRoot().AsMap().at("routing_settings");
     bus_velocity_ = settings.AsMap().at("bus_velocity").AsInt();
-    bus_wait_time_ = settings.AsMap().at("bus_wait_time_").AsInt();
+    bus_wait_time_ = settings.AsMap().at("bus_wait_time").AsInt();
 
     ProcessBuildRequestJSON(request);
     ProcessLengths();
@@ -31,57 +30,106 @@ void    BusDataBase::Build(const Document &request) {
     for (auto &[key, val] : bus_stops_) {
         stop_to_id_[key] = i++;
     }
+    for (auto &[key, val] : stop_to_id_) {
+        id_to_stops_[val] = key;
+    }
     CreateRouter();
 }
-
-struct E_ {
-    size_t from;
-    size_t to;
-};
 
 DirectedWeightedGraph<BusDataBase::Time> BusDataBase::CreateGraph() {
 
     DirectedWeightedGraph<Time> G(bus_stops_.size());
-    std::unordered_map<std::size_t, std::unordered_map<std::size_t, size_t>> added_edges;
+    //std::unordered_map<std::size_t, std::unordered_map<std::size_t, size_t>> added_edges;
 
     for (auto &[num, bus_route] : bus_routes_) {
-        for (size_t i = 1; i < bus_route.route.size(); ++i) {
-            Edge edge = {stop_to_id_[bus_route.route[i - 1]],
-                         stop_to_id_[bus_route.route[i]],
-                      bus_velocity_ * ((bus_stops_.at(bus_route.route[i - 1]).dists.count(bus_route.route[i]) > 0) ?
-                                       bus_stops_.at(bus_route.route[i - 1]).dists.at(bus_route.route[i]) :
-                                       bus_stops_.at(bus_route.route[i]).dists.at(bus_route.route[i - 1]))};
+        // add  edges with span_count = 1
 
-            if (added_edges[edge.from].count(edge.to) == 0) {
+        for (size_t i = 1; i < bus_route.route.size(); ++i) {
+            Time time = bus_wait_time_ +
+                    ((60.0 / 1000.0) / bus_velocity_) * static_cast<double>((bus_stops_.at(bus_route.route[i - 1]).dists.count(bus_route.route[i]) > 0) ?
+                                                                            bus_stops_.at(bus_route.route[i - 1]).dists.at(bus_route.route[i]) :
+                                                                            bus_stops_.at(bus_route.route[i]).dists.at(bus_route.route[i - 1]));
+            Edge<Time> edge = {stop_to_id_[bus_route.route[i - 1]],
+                         stop_to_id_[bus_route.route[i]],
+                      time,
+                      1};
+
+            /*if (added_edges[edge.from].count(edge.to) == 0) {
                 added_edges[edge.from][edge.to] = G.AddEdge(edge);
                 edge_to_bus[added_edges[edge.from][edge.to]].insert(num);
             } else {
                 edge_to_bus[added_edges[edge.from][edge.to]].insert(num);
-            }
+            }*/
+            edge_to_bus[G.AddEdge(edge)].insert(num);
 
             if (bus_route.type == "direct") {
-                Edge reverse_edge = {stop_to_id_[bus_route.route[i]],
+                time = bus_wait_time_ +
+                        ((60.0 / 1000.0) / bus_velocity_) * static_cast<double>((bus_stops_.at(bus_route.route[i]).dists.count(bus_route.route[i - 1]) > 0) ?
+                                                                                bus_stops_.at(bus_route.route[i]).dists.at(bus_route.route[i - 1]) :
+                                                                                bus_stops_.at(bus_route.route[i - 1]).dists.at(bus_route.route[i]));
+                Edge<Time> reverse_edge = {stop_to_id_[bus_route.route[i]],
                           stop_to_id_[bus_route.route[i - 1]],
-                          bus_velocity_ * ((bus_stops_.at(bus_route.route[i]).dists.count(bus_route.route[i - 1]) > 0) ?
-                                           bus_stops_.at(bus_route.route[i]).dists.at(bus_route.route[i - 1]) :
-                                           bus_stops_.at(bus_route.route[i - 1]).dists.at(bus_route.route[i]))};
+                          time,
+                          1};
 
-                if (added_edges[reverse_edge.from].count(reverse_edge.to) == 0) {
+                /*if (added_edges[reverse_edge.from].count(reverse_edge.to) == 0) {
                     added_edges[reverse_edge.from][reverse_edge.to] = G.AddEdge(reverse_edge);
                     edge_to_bus[added_edges[reverse_edge.from][reverse_edge.to]].insert(num);
                 } else {
                     edge_to_bus[added_edges[reverse_edge.from][reverse_edge.to]].insert(num);
+                }*/
+                edge_to_bus[G.AddEdge(reverse_edge)].insert(num);
+            }
+        }
+
+        // add  edges with span_count > 1
+        for (size_t i = 1; i < bus_route.route.size(); ++i) {
+            Time time_direct = bus_wait_time_, time_reverse = bus_wait_time_;
+
+            for (size_t j = i; j < bus_route.route.size(); ++j) {
+                time_direct += ((60.0 / 1000.0) / bus_velocity_) * static_cast<double>((bus_stops_.at(bus_route.route[j - 1]).dists.count(bus_route.route[j]) > 0) ?
+                                                                                bus_stops_.at(bus_route.route[j - 1]).dists.at(bus_route.route[j]) :
+                                                                                bus_stops_.at(bus_route.route[j]).dists.at(bus_route.route[j - 1]));
+                Edge<Time> edge = {stop_to_id_[bus_route.route[i - 1]],
+                                   stop_to_id_[bus_route.route[j]],
+                                   time_direct,
+                                   j - i + 1};
+
+                //if (added_edges[edge.from].count(edge.to) == 0) {
+                   // added_edges[edge.from][edge.to] = G.AddEdge(edge);
+                   // edge_to_bus[added_edges[edge.from][edge.to]].insert(num);
+                /*} else {
+                    edge_to_bus[added_edges[edge.from][edge.to]].insert(num);
+                }*/
+                edge_to_bus[G.AddEdge(edge)].insert(num);
+
+                if (bus_route.type == "direct") {
+                    time_reverse += ((60.0 / 1000.0) / bus_velocity_) * static_cast<double>((bus_stops_.at(bus_route.route[j]).dists.count(bus_route.route[j - 1]) > 0) ?
+                                                                                   bus_stops_.at(bus_route.route[j]).dists.at(bus_route.route[j - 1]) :
+                                                                                   bus_stops_.at(bus_route.route[j - 1]).dists.at(bus_route.route[j]));
+                    Edge<Time> reverse_edge = {stop_to_id_[bus_route.route[j]],
+                                               stop_to_id_[bus_route.route[i - 1]],
+                                               time_reverse,
+                                               j - i + 1};
+
+                    //if (added_edges[reverse_edge.from].count(reverse_edge.to) == 0) {
+                        //added_edges[reverse_edge.from][reverse_edge.to] = G.AddEdge(reverse_edge);
+                       // edge_to_bus[added_edges[reverse_edge.from][reverse_edge.to]].insert(num);
+                    /*} else {
+                        edge_to_bus[added_edges[reverse_edge.from][reverse_edge.to]].insert(num);
+                    }*/
+                    edge_to_bus[G.AddEdge(reverse_edge)].insert(num);
                 }
             }
         }
+
     }
 
     return G;
 }
 
 void BusDataBase::CreateRouter() {
-    Graph g = CreateGraph();
-    router_.emplace(Router<size_t>(g));
+    router_.emplace(Router<Time>(CreateGraph()));
 }
 
 void BusDataBase::ProcessLengths() {
@@ -211,23 +259,92 @@ void    BusDataBase::ProcessAnswStopRequestJSON(const std::map<std::string, Node
     }
 }
 
-std::vector<std::string>    BusDataBase::ComputingFastestRoute(size_t from, size_t to, size_t &time) const {
+std::optional<std::vector<std::size_t>>    BusDataBase::ComputingFastestRoute(size_t from, size_t to, Time &time) const {
     auto route_info = router_->BuildRoute(from, to);
-    std::vector<std::string> route;
 
-    route.push_back(id_to_stop_.at(from));
-    for (size_t i = 0; i < route_info->edge_count; ++i) {
-        route.push_back(id_to_stop_.at(router_->GetEdge(router_->GetRouteEdge(route_info->id, i)).to));
+    if (route_info.has_value()) {
+        std::vector<size_t> route;
+
+        for (size_t i = 0; i < route_info->edge_count; ++i) {
+            route.push_back(router_->GetRouteEdge(route_info->id, i));
+        }
+
+        time = route_info->weight;
+        return route;
     }
+    return std::nullopt;
+}
+
+void    BusDataBase::PrintBusItem(std::string bus_num, size_t span_count, Time time, std::ostream &stream_o) const {
+    stream_o << "{"
+            << "\"span_count\": " << span_count << ", "
+            << "\"type\": \"Bus\", "
+            << "\"bus\": " << "\"" << bus_num << "\", "
+            << "\"time\": " << time
+            << "}";
+}
+
+void    BusDataBase::PrintWaitItem(std::string bus_stop, std::ostream &stream_o) const {
+    stream_o << "{"
+            << "\"type\": \"Wait\", "
+            << "\"stop_name\": " << "\"" << bus_stop << "\", "
+            << "\"time\": " << bus_wait_time_
+            << "}, ";
+}
+
+std::string  BusDataBase::GetBestBus(std::vector<size_t> &route, size_t proc_edges) const {
+    return *edge_to_bus.at(route[proc_edges]).begin();
+    //size_t max = 1;
+
+    /*for (auto &bus : buses) {
+        size_t count = 0, i = proc_edges;
+
+        while (i < route.size() && edge_to_bus.at(route[i]).count(bus)) {
+            count++;
+            i++;
+        }
+
+        if (max < count) {
+            max = count;
+            best_bus = bus;
+        }
+    }*/
+}
+
+void    BusDataBase::PrintItemsOfRoute(std::vector<size_t> &route, std::ostream &stream_o) const {
+    size_t  proc_edges = 0;
+
+    stream_o << "[";
+    while (proc_edges < route.size()) {
+        std::string bus_num = GetBestBus(route, proc_edges);;
+
+        PrintWaitItem(id_to_stops_.at(router_->GetEdgeById(route[proc_edges]).from), stream_o);
+
+        PrintBusItem(bus_num, router_->GetEdgeById(route[proc_edges]).span_count,
+                     router_->GetEdgeById(route[proc_edges]).weight - bus_wait_time_, stream_o);
+
+        proc_edges++;
+        if (proc_edges < route.size()) {
+            stream_o << ", ";
+        }
+    }
+    stream_o << "]";
 }
 
 void    BusDataBase::ProcessAnswRouteRequestJSON(const std::map<std::string, Node> &request, std::ostream &stream_o) const {
-    size_t time = 0;
-    std::vector<std::string> route = ComputingFastestRoute(stop_to_id_.at(request.at("from").AsString()),
-                                                           stop_to_id_.at(request.at("to").AsString()),
-                                                           time);
+    Time time = 0;
+    std::optional<std::vector<size_t>> route = ComputingFastestRoute(stop_to_id_.at(request.at("from").AsString()),
+                                                                     stop_to_id_.at(request.at("to").AsString()),
+                                                                     time);
 
     stream_o << "\"request_id\": " << request.at("id").AsInt() << ", ";
+    if (route != std::nullopt) {
+        stream_o << "\"total_time\": " << time << ", "
+        << "\"items\": ";
+        PrintItemsOfRoute(route.value(), stream_o);
+    } else {
+        stream_o << "\"error_message\": \"not found\"";
+    }
 }
 
 void    BusDataBase::ProcessAnswRequestJSON(const Document &json, std::ostream &stream_o) const {

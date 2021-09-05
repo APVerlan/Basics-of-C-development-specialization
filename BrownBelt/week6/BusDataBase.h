@@ -41,13 +41,14 @@ public:
 
 
 private:
-    using Time = size_t;
-    using Edge = Edge<size_t>;
+    using Time = double;
+    using Graph = DirectedWeightedGraph<Time>;
+
 
     std::unordered_map<std::string, BusRoute>   bus_routes_;
     std::unordered_map<std::string, StopData>   bus_stops_;
     std::unordered_map<std::string, size_t>     stop_to_id_;
-    std::unordered_map<size_t, std::string>     id_to_stop_;
+    std::unordered_map<size_t, std::string>     id_to_stops_;
 
     std::unordered_map<size_t, std::unordered_set<std::string>>     edge_to_bus;
 
@@ -65,9 +66,13 @@ private:
     void    ProcessAnswRouteRequestJSON(const std::map<std::string, Node> &request, std::ostream &stream_o) const;
     void    ProcessStopBildRequestJSON(const std::map<std::string, Node> &request);
     void    ProcessBusBildRequestJSON(const std::map<std::string, Node> &request);
-    std::vector<std::string>    ComputingFastestRoute(size_t from, size_t to, size_t &time) const;
 
-    using Graph = DirectedWeightedGraph<Time>;
+    std::optional<std::vector<size_t>>  ComputingFastestRoute(size_t from, size_t to, Time &time) const;
+    void                                PrintItemsOfRoute(std::vector<size_t> &route, std::ostream &stream_o) const;
+    std::string                         GetBestBus(std::vector<size_t> &route, size_t proc_edges) const;
+    void                                PrintBusItem(std::string bus_num, size_t span_count, Time time, std::ostream &stream_o) const;
+    void                                PrintWaitItem(std::string bus_stop, std::ostream &stream_o) const;
+
 };
 
 
